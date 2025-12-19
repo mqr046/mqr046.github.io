@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字图书展销平台</title>
+    <link rel="stylesheet" href="dingbu.jpg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding-top: 70px; font-family: "微软雅黑", sans-serif; color: #333; background-color: #f5f5f5; }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; background: none; }
+        select { border: 1px solid #ddd; border-radius: 4px; padding: 6px 10px; outline: none; }
+        .loading-mask {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center;
+            opacity: 1; transition: opacity 0.5s; z-index: 9999;
+        }
+        .loading-box { display: flex; align-items: center; gap: 15px; }
+        .loading-spin {
+            width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid #333;
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        .loading-text { font-size: 18px; color: #333; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fixed-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: #333; color: #fff; display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; z-index: 999;
+        }
+        .nav-container {
+            width: 100%; max-width: 1400px; display: flex;
+            align-items: center; justify-content: space-between;
+        }
+        .logo { font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .logo i { color: #f60; }
+        .nav-menu { display: flex; align-items: center; gap: 25px; }
+        .menu-item { font-size: 16px; padding: 8px 0; position: relative; transition: color 0.3s; }
+        .menu-item:hover { color: #f60; }
+        .menu-item.active::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: #f60; }
+        .dropdown { position: relative; }
+        .dropdown-btn { display: flex; align-items: center; gap: 5px; color: #fff; font-size: 16px; transition: color 0.3s; }
+        .dropdown-btn:hover { color: #f60; }
+        .dropdown-list {
+            position: absolute; top: 100%; left: 0; background: #fff; color: #333;
+            min-width: 120px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none; border-radius: 4px; overflow: hidden; z-index: 1000;
+        }
+        .dropdown-list a { display: block; padding: 10px 15px; transition: background 0.3s; }
+        .dropdown-list a:hover { background: #f5f5f5; color: #f60; }
+        .dropdown:hover .dropdown-list { display: block; }
+        .nav-tool { display: flex; align-items: center; gap: 15px; }
+        .search-box {
+            display: flex; align-items: center; background: #444; border-radius: 20px;
+            padding: 6px 15px; width: 220px; transition: background 0.3s;
+        }
+        .search-box:hover { background: #555; }
+        .search-box input { flex: 1; background: none; border: none; color: #fff; outline: none; font-size: 14px; }
+        .search-box input::placeholder { color: #ccc; }
+        .search-btn { color: #fff; transition: color 0.3s; }
+        .search-btn:hover { color: #f60; }
+        .cart-box { position: relative; color: #fff; font-size: 18px; cursor: pointer; transition: color 0.3s; }
+        .cart-box:hover { color: #f60; }
+        .cart-count {
+            position: absolute; top: -8px; right: -8px; width: 18px; height: 18px;
+            background: #f60; border-radius: 50%; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .user-btn { color: #fff; font-size: 18px; transition: color 0.3s; }
+        .user-btn:hover { color: #f60; }
+        .banner { width: 100%; height: 450px; position: relative; overflow: hidden; }
+        .banner-item {
+            width: 100%; height: 100%; background-size: cover; background-position: center;
+            display: none; position: absolute; top: 0; left: 0;
+        }
+        .banner-item.active { display: block; }
+        .banner-dot { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.3s; }
+        .dot.active, .dot:hover { background: #fff; }
+        .banner-prev, .banner-next {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 40px; height: 40px; background: rgba(0,0,0,0.3); color: #fff;
+            border-radius: 50%; font-size: 16px; display: flex; align-items: center; justify-content: center;
+            transition: background 0.3s;
+        }
+        .banner-prev { left: 20px; }
+        .banner-next { right: 20px; }
+        .banner-prev:hover, .banner-next:hover { background: rgba(0,0,0,0.5); }
+        .book-container { width: 100%; max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
+        .container-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .container-header h2 { font-size: 24px; color: #333; font-weight: bold; }
+        .filter-tool { display: flex; align-items: center; gap: 15px; }
+        .filter-title { font-size: 14px; color: #666; }
+        .book-list { display: flex; flex-wrap: wrap; gap: 25px; justify-content: flex-start; }
+        .book-card {
+            width: calc(25% - 20px); 
+            background: #fff; 
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .book-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .book-img { position: relative; width: 100%; height: 260px; overflow: hidden; }
+        .book-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .book-card:hover .book-img img { transform: scale(1.05); }
+        .img-preview {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+            width: 350px; height: 490px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border-radius: 8px; overflow: hidden; z-index: 10; opacity: 0; visibility: hidden;
+            transition: all 0.3s;
+        }
+        .book-img:hover .img-preview { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .book-info { padding: 15px; }
+        .book-title { font-size: 17px; color: #333; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
+        .book-title:hover { color: #f60; }
+        .book-author { font-size: 14px; color: #666; margin-bottom: 10px; }
+        .book-tag { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .book-tag span { font-size: 12px; color: #999; background: #f5f5f5; padding: 3px 8px; border-radius: 12px; }
+        .book-footer { display: flex; justify-content: space-between; align-items: center; }
+        .book-price { font-size: 18px; color: #f60; font-weight: bold; }
+        .book-operate { display: flex; gap: 10px; }
+        .add-cart { padding: 6px 12px; background: #f5f5f5; color: #333; border-radius: 4px; font-size: 14px; display: flex; align-items: center; gap: 5px; transition: background 0.3s; }
+        .add-cart:hover { background: #eee; color: #f60; }
+        .buy-now { padding: 6px 12px; background: #f60; color: #fff; border-radius: 4px; font-size: 14px; transition: background 0.3s; }
+        .buy-now:hover { background: #e55a00; }
+        @media (max-width: 1200px) {
+            .book-card { width: calc(33.333% - 20px);  }
+        }
+        @media (max-width: 768px) {
+            .book-card { width: calc(50% - 15px);  }
+        }
+        @media (max-width: 480px) {
+            .book-card { width: 100%;  }
+        }
+        .toast-message {
+            position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+            background: rgba(76, 175, 80, 0.9); color: #fff; border-radius: 4px;
+            display: none; z-index: 1000; animation: fadeInOut 2s ease;
+        }
+        .toast-message.show { display: block; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; } }
+        .back-top {
+            position: fixed; bottom: 30px; right: 30px; width: 40px; height: 40px;
+            background: #333; color: #fff; border-radius: 50%;
+            display: none; align-items: center; justify-content: center; z-index: 999;
+            transition: background 0.3s;
+        }
+        .back-top:hover { background: #f60; }
+
+        /* 页脚 */
+        .footer { background: #333; color: #fff; padding: 40px 20px 20px; }
+        .footer-container {
+            width: 100%; max-width: 1400px; margin: 0 auto;
+            display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 20px;
+        }
+        .footer-col { width: 30%; }
+        .footer-col h3 { font-size: 18px; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f60; display: inline-block; }
+        .footer-col p { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 10px; }
+        .social-icon { display: flex; gap: 15px; }
+        .social-icon a { width: 36px; height: 36px; background: #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .social-icon a:hover { background: #f60; }
+        .copyright { text-align: center; padding-top: 20px; font-size: 14px; color: #ccc; }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-mask">
+        <div class="loading-box">
+            <div class="loading-spin"></div>
+            <span class="loading-text">图书资源加载中...</span>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <header class="fixed-nav">
+        <div class="nav-container">
+            <div class="logo"><i class="fas fa-book"></i> 知阅图书展销平台</div>
+            <div class="nav-menu">
+                <a href="#" class="menu-item active">首页</a>
+                <div class="dropdown">
+                    <button class="dropdown-btn">图书分类 <i class="fas fa-chevron-down"></i></button>
+                    <div class="dropdown-list">
+                        <a href="#">计算机科技</a><a href="#">文学小说</a><a href="#">历史传记</a><a href="#">社科人文</a><a href="#">少儿读物</a>
+                    </div>
+                </div>
+                <a href="#" class="menu-item">新书上架</a><a href="#" class="menu-item">热销榜单</a><a href="#" class="menu-item">关于我们</a>
+            </div>
+            <div class="nav-tool">
+                <div class="search-box">
+                    <input type="text" placeholder="搜索图书/作者">
+                    <button class="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="cart-box"><i class="fas fa-shopping-cart"></i><span class="cart-count">3</span></div>
+                <a href="#" class="user-btn"><i class="fas fa-user"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 轮播图 -->
+    <div class="banner">
+        <div class="banner-list">
+            <div class="banner-item active" style="background-image: url(https://picsum.photos/id/24/1920/450);"></div>
+            <div class="banner-item" style="background-image: url(https://picsum.photos/id/25/1920/450);"></div>
+            <div class="banner-item" style="background-image: url(https://picsum.photos/id/26/1920/450);"></div>
+        </div>
+        <div class="banner-dot"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+        <button class="banner-prev"><i class="fas fa-chevron-left"></i></button>
+        <button class="banner-next"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <!-- 图书列表（8本，2行4列布局） -->
+    <main class="book-container">
+        <div class="container-header">
+            <h2>热门图书推荐</h2>
+            <div class="filter-tool">
+                <span class="filter-title">筛选：</span>
+                <select class="filter-select">
+                    <option value="">全部类型</option><option value="tech">计算机科技</option><option value="literature">文学小说</option><option value="history">历史传记</option>
+                </select>
+                <select class="filter-select">
+                    <option value="">默认排序</option><option value="price-asc">价格从低到高</option><option value="price-desc">价格从高到低</option><option value="hot">销量优先</option>
+                </select>
+            </div>
+        </div>
+        <div class="book-list">
+            <!-- 图书1 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.1.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.1yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">计算机网络自顶向下方法</h3>
+                    <p class="book-author">作者：詹姆斯·福罗赞</p>
+                    <div class="book-tag"><span>计算机</span><span>网络</span><span>教材</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥89.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书2 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.2.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.2yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">百年孤独</h3>
+                    <p class="book-author">作者：加西亚·马尔克斯</p>
+                    <div class="book-tag"><span>文学</span><span>小说</span><span>经典</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥59.80</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书3 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.3.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.3yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">活着</h3>
+                    <p class="book-author">作者：余华</p>
+                    <div class="book-tag"><span>社科</span><span>历史</span><span>科普</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥68.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书4 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.4.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.4yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">JavaScript高级程序设计</h3>
+                    <p class="book-author">作者：马特·弗里斯比</p>
+                    <div class="book-tag"><span>前端</span><span>JS</span><span>编程</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥99.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书5 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.5.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.5yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">明朝那些事儿</h3>
+                    <p class="book-author">作者：当年明月</p>
+                    <div class="book-tag"><span>历史</span><span>通俗</span><span>传记</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥78.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书6 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.6.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.6yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">Python编程：从入门到实践</h3>
+                    <p class="book-author">作者：埃里克·马瑟斯</p>
+                    <div class="book-tag"><span>Python</span><span>编程</span><span>入门</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥69.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书7 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.7.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.7yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">追风筝的人</h3>
+                    <p class="book-author">作者：卡勒德·胡赛尼</p>
+                    <div class="book-tag"><span>文学</span><span>小说</span><span>治愈</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥45.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 图书8 -->
+            <div class="book-card">
+                <div class="book-img">
+                    <img src="book.8.jpg" alt="封面">
+                    <div class="img-preview"><img src="book.8yulan.jpg" alt="预览"></div>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title">数据结构与算法分析</h3>
+                    <p class="book-author">作者：马克·艾伦·维斯</p>
+                    <div class="book-tag"><span>计算机</span><span>算法</span><span>教材</span></div>
+                    <div class="book-footer">
+                        <span class="book-price">¥85.00</span>
+                        <div class="book-operate">
+                            <button class="add-cart"><i class="fas fa-shopping-cart"></i> 加入购物车</button>
+                            <button class="buy-now">立即购买</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div class="toast-message"></div>
+    <button class="back-top"><i class="fas fa-chevron-up"></i></button>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h3>关于我们</h3>
+                <p>知阅图书展销平台，专注优质图书销售，为读者提供海量正版图书资源，打造便捷舒适的购书体验。</p>
+            </div>
+            <div class="footer-col">
+                <h3>联系我们</h3>
+                <p><i class="fas fa-phone"></i> 400-123-4567</p>
+                <p><i class="fas fa-envelope"></i> 2184827695qq@.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> 鲁东大学北教二十二208</p>
+            </div>
+            <div class="footer-col">
+                <h3>关注我们</h3>
+                <div class="social-icon">
+                    <a href="#"><i class="fab fa-weixin"></i></a>
+                    <a href="#"><i class="fab fa-weibo"></i></a>
+                    <a href="#"><i class="fab fa-qq"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">© 2025 知阅图书展销平台 版权所有 京ICP备12345678号</div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const loadingMask = document.querySelector('.loading-mask');
+            setTimeout(() => {
+                loadingMask.style.opacity = '0';
+                setTimeout(() => loadingMask.style.display = 'none', 500);
+            }, 800);
+        });
+        const bannerItems = document.querySelectorAll('.banner-item');
+        const dots = document.querySelectorAll('.dot');
+        const prevBtn = document.querySelector('.banner-prev');
+        const nextBtn = document.querySelector('.banner-next');
+        let currentIndex = 0;
+
+        function switchBanner(index) {
+            bannerItems.forEach(item => item.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            bannerItems[index].classList.add('active');
+            dots[index].classList.add('active');
+            currentIndex = index;
+        }
+
+        dots.forEach((dot, index) => dot.addEventListener('click', () => switchBanner(index)));
+        prevBtn.addEventListener('click', () => switchBanner((currentIndex - 1 + bannerItems.length) % bannerItems.length));
+        nextBtn.addEventListener('click', () => switchBanner((currentIndex + 1) % bannerItems.length));
+        setInterval(() => switchBanner((currentIndex + 1) % bannerItems.length), 3000);
+        document.querySelectorAll('.add-cart').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const toast = document.querySelector('.toast-message');
+                toast.textContent = '已成功加入购物车！';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        })
+        const backTopBtn = document.querySelector('.back-top');
+        window.addEventListener('scroll', () => {
+            backTopBtn.style.display = window.scrollY > 500 ? 'flex' : 'none';
+        });
+        backTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
