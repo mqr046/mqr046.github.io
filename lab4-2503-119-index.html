@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026春韵数字展销平台</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background-color: #f5f5f5;
+    padding-top: 80px;
+}
+.clearfix::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 999;
+    padding: 0 20px;
+}
+.logo {
+    float: left;
+    height: 70px;
+    line-height: 70px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+.nav {
+    float: right;
+    height: 70px;
+    line-height: 70px;
+}
+.nav ul {
+    list-style: none;
+}
+.nav ul li {
+    float: left;
+    margin-left: 30px;
+}
+.nav ul li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.nav ul li a:hover {
+    color: #e74c3c;
+}
+.main {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.left-sidebar {
+    position: relative;
+    float: left;
+    width: 200px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-right: 20px;
+}
+.left-sidebar h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4cad4f;
+}
+.left-sidebar ul {
+    list-style: none;
+}
+.left-sidebar ul li {
+    margin-bottom: 10px;
+}
+.left-sidebar ul li a {
+    text-decoration: none;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.left-sidebar ul li a:hover {
+    color: #4cad4f;
+    padding-left: 5px;
+}
+.content {
+    float: left;
+    width: 700px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-right: 20px;
+}
+.content h3 {
+    font-size: 20px;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+.book-show .book-list {
+    position: relative;
+}
+.book-item {
+    position: relative;
+    float: left;
+    width: 200px;
+    height: 250px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #666;
+}
+/* ========== 1.图书图片：悬停放大、右移、阴影加深 ========== */
+.book-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transform: scale(1);
+}
+.book-item:hover img{
+    transform: scale(1.08) translateX(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+
+.book-hover {
+    position: absolute;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background-color: rgba(0,0,0,0.7);
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    transition: bottom 0.3s;
+}
+.book-item:hover .book-hover {
+    bottom: 0;
+}
+.hot-recommend .hot-list {
+    margin-top: 20px;
+}
+.hot-item {
+    float: left;
+    width: 200px;
+    height: 250px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+.hot-item img {
+    width: 100%;
+    height: 200px;
+    background: #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    /* 热门图同样加动画 */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.hot-item:hover img{
+    transform: scale(1.08) translateX(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+.hot-item p {
+    font-size: 14px;
+    color: #333;
+}
+.new-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+.new-table th, .new-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+}
+.new-table th {
+    background-color: #f8f8f8;
+    color: #2c3e50;
+    font-weight: bold;
+}
+.new-table tbody tr:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+.right-sidebar {
+    float: right;
+    width: 200px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.right-sidebar h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4cad4f;
+}
+.promo-item {
+    background-color: #e6f7e6;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.promo-item:hover {
+    transform: scale(1.03);
+}
+.promo-item p {
+    font-size: 14px;
+    color: #2c7a2f;
+    font-weight: bold;
+}
+.footer {
+    width: 100%;
+    height: 60px;
+    background-color: #2c3e50;
+    color: #fff;
+    text-align: center;
+    line-height: 60px;
+    margin-top: 30px;
+}
+
+.top-banner {
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.banner-wrap{
+    width: 100%;
+    height: 100%;
+    animation: slideUp 12s infinite ease-in-out;
+}
+.banner-item{
+    width: 100%;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: bold;
+    color: #fff;
+}
+.banner-item:nth-child(1){
+    background: linear-gradient(to right, #4cad4f, #76c77a);
+}
+.banner-item:nth-child(2){
+    background: linear-gradient(to right, #3498db, #5dade2);
+}
+.banner-item:nth-child(3){
+    background: linear-gradient(to right, #e74c3c, #ec7063);
+}
+@keyframes slideUp{
+    0%,30%{transform: translateY(0);}
+    33%,63%{transform: translateY(-160px);}
+    66%,96%{transform: translateY(-320px);}
+    100%{transform: translateY(0);}
+}
+.modal{
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content{
+    background: #fff;
+    width: 360px;
+    padding: 30px;
+    border-radius: 10px;
+    position: relative;
+}
+.close-btn{
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.close-btn:hover{
+    color: #333;
+}
+.form-box{
+    display: none;
+}
+.form-box.active{
+    display: block;
+}
+.form-box h2{
+    text-align: center;
+    margin-bottom: 25px;
+    color: #2c3e50;
+}
+.form-box input{
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+.form-box button{
+    width: 100%;
+    padding: 10px;
+    background: #4cad4f;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+.form-box button:hover{
+    background: linear-gradient(45deg,#4cad4f,#76c77a);
+    transform: scale(1.05);
+}
+.form-box .link{
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    color: #4cad4f;
+}
+
+.icon-group{
+    float: right;
+    margin-right: 20px;
+    line-height: 70px;
+}
+.icon-group span{
+    font-size: 22px;
+    margin: 0 10px;
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.5s ease;
+}
+.icon-group span:hover{
+    transform: rotate(360deg);
+}
+</style>
+</head>
+<body>
+
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closeModal()">×</div>
+        <div class="form-box active" id="loginBox">
+            <h2>用户登录</h2>
+            <input type="text" id="loginUser" placeholder="用户名">
+            <input type="password" id="loginPwd" placeholder="密码">
+            <button onclick="userLogin()">登录</button>
+            <div class="link" onclick="switchForm('registerBox')">没有账号？去注册</div>
+        </div>
+        <div class="form-box" id="registerBox">
+            <h2>用户注册</h2>
+            <input type="text" id="regUser" placeholder="请输入用户名">
+            <input type="password" id="regPwd" placeholder="请输入密码">
+            <input type="password" id="regPwd2" placeholder="确认密码">
+            <button onclick="userRegister()">注册</button>
+            <div class="link" onclick="switchForm('loginBox')">已有账号？去登录</div>
+        </div>
+    </div>
+</div>
+
+<header class="header">
+    <div class="logo"> 2026春韵数字展销 </div>
+
+    <div class="icon-group">
+        <span>🔍</span>
+        <span>🛒</span>
+    </div>
+
+    <nav class="nav">
+        <ul>
+            <li><a href="#">首页</a></li>
+            <li><a href="#">图书分类</a></li>
+            <li><a href="#">热门推荐</a></li>
+            <li><a href="#">新书上市</a></li>
+            <li><a href="#">关于我们</a></li>
+            <li><a href="javascript:;" onclick="openModal()">登录/注册</a></li>
+        </ul>
+    </nav>
+    <div class="clearfix"></div>
+</header>
+
+<div class="top-banner">
+    <div class="banner-wrap">
+        <div class="banner-item">2026 · 春韵数字展销平台</div>
+        <div class="banner-item">春日好书 限时特惠</div>
+        <div class="banner-item">海量图书 正版优选</div>
+    </div>
+</div>
+
+<main class="main">
+    <aside class="left-sidebar">
+        <h3>图书分类导航</h3>
+        <ul>
+            <li><a href="#">文学小说</a></li>
+            <li><a href="#">历史人文</a></li>
+            <li><a href="#">科技科普</a></li>
+            <li><a href="#">少儿读物</a></li>
+            <li><a href="#">生活艺术</a></li>
+            <li><a href="#">经管励志</a></li>
+        </ul>
+    </aside>
+    <section class="content">
+        <div class="book-show">
+            <h3>图书展示</h3>
+            <div class="book-list">
+                <div class="book-item">
+                    <img src="1191.jpg" alt="人间草木">
+                    <div class="book-hover">
+                        <p>人间草木</p>
+                        <p>汪曾祺</p>
+                        <p>¥39.9</p>
+                    </div>
+                </div>
+                <div class="book-item">
+                    <img src="1192.jpg" alt="也是冬天，也是春天">
+                    <div class="book-hover">
+                        <p>也是冬天，也是春天</p>
+                        <p>迟子建</p>
+                        <p>¥45.9</p>
+                    </div>
+                </div>
+                <div class="book-item">
+                    <img src="1193.jpg" alt="瓦尔登湖">
+                    <div class="book-hover">
+                        <p>瓦尔登湖</p>
+                        <p>亨利·戴维·梭罗</p>
+                        <p>¥42.9</p>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+        <div class="hot-recommend">
+            <h3>热门推荐</h3>
+            <div class="hot-list">
+                <div class="hot-item">
+                    <img src="1194.jpg" alt="小城三月">
+                    <p>小城三月</p>
+                    <p>林徽因</p>
+                </div>
+                <div class="hot-item">
+                    <img src="1195.jpg" alt="春天最初是闻到的">
+                    <p>春天最初是闻到的</p>
+                    <p>冯骥才</p>
+                </div>
+                <div class="hot-item">
+                    <img src="1196.jpg" alt="边城">
+                    <p>边城</p>
+                    <p>沈从文</p>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+        <div class="new-book">
+            <h3>新书上市</h3>
+            <table class="new-table">
+                <thead>
+                    <tr>
+                        <th>书名</th>
+                        <th>作者</th>
+                        <th>价格</th>
+                        <th>出版时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>咸的玩笑</td>
+                        <td>刘震云</td>
+                        <td>¥39.9</td>
+                        <td>2026-12</td>
+                    </tr>
+                    <tr>
+                        <td>张三李四</td>
+                        <td>韩少功</td>
+                        <td>¥45.9</td>
+                        <td>2026-01</td>
+                    </tr>
+                    <tr>
+                        <td>雪山上的猴子</td>
+                        <td>胡安焉</td>
+                        <td>¥42.9</td>
+                        <td>2026-04</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <aside class="right-sidebar">
+        <h3>促销信息</h3>
+        <div class="promo-item">
+            <p>2026春季特惠 满99减20</p>
+        </div>
+        <div class="promo-item">
+            <p>新书8折优惠</p>
+        </div>
+        <div class="promo-item">
+            <p>全场包邮</p>
+        </div>
+    </aside>
+    <div class="clearfix"></div>
+</main>
+<footer class="footer">
+    <p>© 2026 春韵数字展销平台 版权所有</p>
+</footer>
+
+<script>
+function openModal(){
+    document.getElementById('loginModal').style.display = 'flex';
+}
+function closeModal(){
+    document.getElementById('loginModal').style.display = 'none';
+}
+function switchForm(id){
+    document.querySelectorAll('.form-box').forEach(item => {
+        item.classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+}
+function userRegister(){
+    let user = document.getElementById('regUser').value.trim();
+    let pwd = document.getElementById('regPwd').value;
+    let pwd2 = document.getElementById('regPwd2').value;
+
+    if(!user || !pwd || !pwd2){
+        alert('请填写完整信息');
+        return;
+    }
+    if(pwd !== pwd2){
+        alert('两次密码不一致');
+        return;
+    }
+
+    let userList = JSON.parse(localStorage.getItem('userList')) || [];
+    let hasUser = userList.some(item => item.username === user);
+    if(hasUser){
+        alert('用户名已存在');
+        return;
+    }
+
+    userList.push({username: user, password: pwd});
+    localStorage.setItem('userList', JSON.stringify(userList));
+    alert('注册成功！请登录');
+    switchForm('loginBox');
+}
+function userLogin(){
+    let user = document.getElementById('loginUser').value.trim();
+    let pwd = document.getElementById('loginPwd').value;
+
+    if(!user || !pwd){
+        alert('请输入用户名和密码');
+        return;
+    }
+
+    let userList = JSON.parse(localStorage.getItem('userList')) || [];
+    let target = userList.find(item => item.username === user && item.password === pwd);
+    
+    if(target){
+        alert('登录成功！欢迎您：' + user);
+        document.getElementById('loginModal').style.display = 'none';
+    }else{
+        alert('用户名或密码错误');
+    }
+}
+</script>
+
+</body>
+</html>
